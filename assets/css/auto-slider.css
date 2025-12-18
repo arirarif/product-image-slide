@@ -1,0 +1,74 @@
+/**
+ * Product Image Auto Slider Styles
+ * Smooth transitions for auto-sliding product images
+ */
+
+/* Smooth transitions for FlexSlider galleries */
+.woocommerce-product-gallery .flex-viewport {
+    transition: all 0.6s ease-in-out;
+}
+
+.woocommerce-product-gallery .flex-control-nav li {
+    transition: opacity 0.3s ease;
+}
+
+/* Smooth transitions for thumbnail-based galleries */
+.woocommerce-product-gallery__image {
+    transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+}
+
+.woocommerce-product-gallery__image:not(.pias-active) {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.woocommerce-product-gallery__image.pias-active {
+    opacity: 1;
+    position: relative;
+    pointer-events: auto;
+}
+
+/* Ensure gallery wrapper has relative positioning */
+.woocommerce-product-gallery {
+    position: relative;
+}
+
+/* Smooth fade effect for image changes */
+.woocommerce-product-gallery img {
+    transition: opacity 0.6s ease-in-out;
+}
+
+/* Optional: Add a subtle animation indicator */
+.woocommerce-product-gallery.pias-auto-sliding::after {
+    content: '';
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    animation: pias-pulse 1s infinite;
+    z-index: 10;
+}
+
+@keyframes pias-pulse {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.2);
+    }
+}
+
+/* Ensure smooth transitions don't break on mobile */
+@media (max-width: 768px) {
+    .woocommerce-product-gallery__image {
+        transition: opacity 0.4s ease-in-out;
+    }
+}
