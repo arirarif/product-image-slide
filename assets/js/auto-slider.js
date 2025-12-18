@@ -6,132 +6,70 @@
 (function($) {
     'use strict';
 
-    $(document).ready(function() {
-        // Check if settings are available
+    let autoSlideTimer = null;
+    let currentIndex = 0;
+    let isHovering = false;
+
+    function startAutoSlide() {
         if (typeof piasSettings === 'undefined' || !piasSettings.enableAutoSlide) {
             return;
         }
 
-        let slideInterval = piasSettings.interval || 1000;
-        let autoSlideTimer = null;
+        const slideInterval = piasSettings.interval || 1000;
 
-        /**
-         * Start auto sliding for WooCommerce gallery
-         */
-        function startAutoSlide() {
-            // Check if product gallery exists
-            const $gallery = $('.woocommerce-product-gallery');
+        // Find gallery thumbnails (WooCommerce standard structure)
+        const $thumbnails = $('.woocommerce-product-gallery__wrapper .woocommerce-product-gallery__trigger').parent().find('.woocommerce-product-gallery__image a');
 
-            if ($gallery.length === 0) {
-                return;
-            }
-
-            // Method 1: FlexSlider (default WooCommerce gallery)
-            if ($gallery.find('.flex-control-nav').length > 0) {
-                startFlexSliderAutoSlide($gallery);
-            }
-            // Method 2: Thumbnail-based gallery
-            else if ($gallery.find('.woocommerce-product-gallery__image').length > 1) {
-                startThumbnailAutoSlide($gallery);
-            }
+        if ($thumbnails.length <= 1) {
+            return;
         }
 
-        /**
-         * Auto slide for FlexSlider-based galleries
-         */
-        function startFlexSliderAutoSlide($gallery) {
-            const $thumbnails = $gallery.find('.flex-control-nav li');
+        // Clear any existing timer
+        if (autoSlideTimer) {
+            clearInterval(autoSlideTimer);
+        }
 
-            if ($thumbnails.length <= 1) {
-                return;
-            }
-
-            let currentIndex = 0;
-
-            autoSlideTimer = setInterval(function() {
+        // Start sliding
+        autoSlideTimer = setInterval(function() {
+            if (!isHovering) {
                 currentIndex = (currentIndex + 1) % $thumbnails.length;
-                $thumbnails.eq(currentIndex).find('a').trigger('click');
-            }, slideInterval);
-
-            // Pause on hover
-            $gallery.on('mouseenter', function() {
-                if (autoSlideTimer) {
-                    clearInterval(autoSlideTimer);
-                }
-            });
-
-            // Resume on mouse leave
-            $gallery.on('mouseleave', function() {
-                startFlexSliderAutoSlide($gallery);
-            });
-        }
-
-        /**
-         * Auto slide for thumbnail-based galleries
-         */
-        function startThumbnailAutoSlide($gallery) {
-            const $images = $gallery.find('.woocommerce-product-gallery__image');
-
-            if ($images.length <= 1) {
-                return;
+                $thumbnails.eq(currentIndex).trigger('click');
             }
+        }, slideInterval);
 
-            let currentIndex = 0;
-
-            autoSlideTimer = setInterval(function() {
-                // Hide current image
-                $images.eq(currentIndex).removeClass('pias-active');
-
-                // Move to next image
-                currentIndex = (currentIndex + 1) % $images.length;
-
-                // Show next image
-                $images.eq(currentIndex).addClass('pias-active');
-            }, slideInterval);
-
-            // Set first image as active
-            $images.eq(0).addClass('pias-active');
-
-            // Pause on hover
-            $gallery.on('mouseenter', function() {
-                if (autoSlideTimer) {
-                    clearInterval(autoSlideTimer);
-                }
-            });
-
-            // Resume on mouse leave
-            $gallery.on('mouseleave', function() {
-                startThumbnailAutoSlide($gallery);
-            });
-        }
-
-        /**
-         * Handle WooCommerce's image gallery initialization
-         * WooCommerce initializes the gallery after page load
-         */
-        let initAttempts = 0;
-        const maxAttempts = 10;
-
-        function tryInitAutoSlide() {
-            const $gallery = $('.woocommerce-product-gallery');
-
-            if ($gallery.length > 0 && $gallery.find('.woocommerce-product-gallery__image').length > 0) {
-                // Gallery is ready, start auto slide
-                startAutoSlide();
-            } else if (initAttempts < maxAttempts) {
-                // Try again after a short delay
-                initAttempts++;
-                setTimeout(tryInitAutoSlide, 200);
-            }
-        }
-
-        // Start initialization attempts
-        tryInitAutoSlide();
-
-        // Also listen for WooCommerce gallery initialization event
-        $(document.body).on('wc-product-gallery-after-init', function() {
-            startAutoSlide();
+        // Pause on hover
+        $('.woocommerce-product-gallery').on('mouseenter', function() {
+            isHovering = true;
+        }).on('mouseleave', function() {
+            isHovering = false;
         });
+    }
+
+    // Wait for WooCommerce gallery to initialize
+    $(document).ready(function() {
+        // Try multiple methods to catch gallery initialization
+
+        // Method 1: Wait for WooCommerce event
+        $(document.body).on('wc-product-gallery-after-init', function() {
+            setTimeout(startAutoSlide, 500);
+        });
+
+        // Method 2: Poll for gallery readiness
+        let attempts = 0;
+        const maxAttempts = 20;
+
+        function checkGallery() {
+            const $gallery = $('.woocommerce-product-gallery__image');
+
+            if ($gallery.length > 1) {
+                startAutoSlide();
+            } else if (attempts < maxAttempts) {
+                attempts++;
+                setTimeout(checkGallery, 200);
+            }
+        }
+
+        setTimeout(checkGallery, 500);
     });
 
 })(jQuery);

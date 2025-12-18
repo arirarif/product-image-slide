@@ -1,20 +1,3 @@
-# Dependencies
-/vendor/
-/node_modules/
-
-# Composer
-composer.lock
-composer.phar
-
-# NPM
-package-lock.json
-npm-debug.log
-yarn.lock
-
-# Test Coverage
-/coverage/
-.phpunit.result.cache
-
 # IDE
 .idea/
 .vscode/
