@@ -1,75 +1,50 @@
 /**
- * Product Image Auto Slider
- * Automatically slides through WooCommerce product gallery images
+ * Product Image Auto Slider - Simple version for Woodmart
  */
 
 (function($) {
     'use strict';
 
-    let autoSlideTimer = null;
-    let currentIndex = 0;
-    let isHovering = false;
-
-    function startAutoSlide() {
+    $(window).on('load', function() {
         if (typeof piasSettings === 'undefined' || !piasSettings.enableAutoSlide) {
             return;
         }
 
-        const slideInterval = piasSettings.interval || 1000;
+        const interval = piasSettings.interval || 1000;
+        let currentIndex = 0;
+        let isPaused = false;
 
-        // Find gallery thumbnails (WooCommerce standard structure)
-        const $thumbnails = $('.woocommerce-product-gallery__wrapper .woocommerce-product-gallery__trigger').parent().find('.woocommerce-product-gallery__image a');
+        // Wait a bit for gallery to fully load
+        setTimeout(function() {
+            // Find thumbnails - try multiple selectors for different themes
+            let $thumbs = $('.woocommerce-product-gallery ol.flex-control-thumbs li img');
 
-        if ($thumbnails.length <= 1) {
-            return;
-        }
-
-        // Clear any existing timer
-        if (autoSlideTimer) {
-            clearInterval(autoSlideTimer);
-        }
-
-        // Start sliding
-        autoSlideTimer = setInterval(function() {
-            if (!isHovering) {
-                currentIndex = (currentIndex + 1) % $thumbnails.length;
-                $thumbnails.eq(currentIndex).trigger('click');
+            if ($thumbs.length === 0) {
+                $thumbs = $('.product-images .product-image-gallery img');
             }
-        }, slideInterval);
 
-        // Pause on hover
-        $('.woocommerce-product-gallery').on('mouseenter', function() {
-            isHovering = true;
-        }).on('mouseleave', function() {
-            isHovering = false;
-        });
-    }
-
-    // Wait for WooCommerce gallery to initialize
-    $(document).ready(function() {
-        // Try multiple methods to catch gallery initialization
-
-        // Method 1: Wait for WooCommerce event
-        $(document.body).on('wc-product-gallery-after-init', function() {
-            setTimeout(startAutoSlide, 500);
-        });
-
-        // Method 2: Poll for gallery readiness
-        let attempts = 0;
-        const maxAttempts = 20;
-
-        function checkGallery() {
-            const $gallery = $('.woocommerce-product-gallery__image');
-
-            if ($gallery.length > 1) {
-                startAutoSlide();
-            } else if (attempts < maxAttempts) {
-                attempts++;
-                setTimeout(checkGallery, 200);
+            if ($thumbs.length === 0) {
+                $thumbs = $('.woocommerce-product-gallery__wrapper .woocommerce-product-gallery__image img');
             }
-        }
 
-        setTimeout(checkGallery, 500);
+            if ($thumbs.length <= 1) {
+                return;
+            }
+
+            // Start auto sliding
+            setInterval(function() {
+                if (!isPaused) {
+                    currentIndex = (currentIndex + 1) % $thumbs.length;
+                    $thumbs.eq(currentIndex).trigger('click');
+                }
+            }, interval);
+
+            // Pause on hover
+            $('.woocommerce-product-gallery, .product-images').hover(
+                function() { isPaused = true; },
+                function() { isPaused = false; }
+            );
+        }, 1000);
     });
 
 })(jQuery);
