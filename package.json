@@ -1,0 +1,25 @@
+{
+  "name": "product-image-auto-slider",
+  "version": "1.0.0",
+  "description": "WooCommerce product image auto slider plugin",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "testMatch": [
+      "**/tests/js/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "assets/js/**/*.js"
+    ]
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^29.0.0"
+  },
+  "author": "AriRarif",
+  "license": "GPL-2.0-or-later"
+}
